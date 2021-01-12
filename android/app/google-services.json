@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "506223967399",
+    "project_id": "f-fridgehub",
+    "storage_bucket": "f-fridgehub.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:506223967399:android:f29bbd116b029e85d02f82",
+        "android_client_info": {
+          "package_name": "com.example.f_fridgehub"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "506223967399-ttkl0pq57mv6mv4aq3f5q5ptllg92obj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.f_fridgehub",
+            "certificate_hash": "3572f88507f9b5cfa68bfd9558c50f830e260648"
+          }
+        },
+        {
+          "client_id": "506223967399-ispmcjc579ctrkiv2nni6ucljvnt7nh8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbi_VVF2kP8n8A3llxPKtCZM4VOFyiXXI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "506223967399-ispmcjc579ctrkiv2nni6ucljvnt7nh8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
