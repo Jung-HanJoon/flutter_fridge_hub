@@ -117,10 +117,10 @@ class DBHelper {
 
     print(ing);
     print(a);
-    List<Map<String, dynamic>> result = await db.rawQuery("SELECT Fimg, Intro, FName FROM BASE WHERE FoodID IN(SELECT FoodId FROM ING WHERE IName IN $a GROUP BY FoodId order by count(FoodId) desc Limit 5)");
+    List<Map<String, dynamic>> result = await db.rawQuery("SELECT Fimg, Intro, FName, difficult, time, Fdcat FROM BASE WHERE FoodID IN(SELECT FoodId FROM ING WHERE IName IN $a GROUP BY FoodId order by count(FoodId) desc Limit 5)");
     //List<Map<String, dynamic>> result = await db.query('ING', where: 'FoodId', whereArgs: [foodid]);
     print('result = $result');
-    List<Recommend> recommended = result.map((e) =>Recommend(e['FName'], e['Intro'], e['Fimg'])).toList();
+    List<Recommend> recommended = result.map((e) =>Recommend(e['FName'], e['Intro'], e['Fimg'], e['difficult'], e['time'], e['Fdcat'])).toList();
     return recommended;
   }
 

@@ -92,24 +92,68 @@ class _RecommendPageState extends State<RecommendPage> {
             height: 300,
             fit: BoxFit.cover,
           ),
-          Container(
-            margin: EdgeInsets.only(top: 190.0),
-            height: 110.0,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                //라인 색상을 전환할 때 사용
-                colors: <Color>[Color(0x00736AB7), Colors.brown[400]],
-                stops: [0.0, 0.9], //시작과 끝을 설정
-                begin: FractionalOffset(0.0, 0.0),
-                end: FractionalOffset(0.0, 0.9),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              padding: EdgeInsets.only(right: 10),
+              height: 300.0,
+              width: 150.0,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  //라인 색상을 전환할 때 사용
+                  colors: <Color>[Color(0x00736AB7), Colors.grey[100]],
+                  stops: [0.0, 0.9], //시작과 끝을 설정
+                  begin: FractionalOffset(0.0, 0.0),
+                  end: FractionalOffset(1.5, 0.0),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                // mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(padding: EdgeInsets.all(8.0),child:Container()),
+                  Text('구분', style: TextStyle(fontSize: 20),),
+                  Text(recommend.cat, style: TextStyle(fontSize: 35),),
+                  Padding(padding: EdgeInsets.all(8.0),child:Container()),
+                  Text('난이도', style: TextStyle(fontSize: 20),),
+                  Text(recommend.difficult, style: TextStyle(fontSize: 35),),
+                  Padding(padding: EdgeInsets.all(8.0),child:Container()),
+                  Text('조리시간', style: TextStyle(fontSize: 20),),
+                  Text(recommend.time, style: TextStyle(fontSize: 35),),
+                ],
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text('"${recommend.intro}"'
-              ,
-              style: TextStyle(color: Colors.white, fontSize: 18),textAlign: TextAlign.center,
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(recommend.fName
+                      ,
+                      style: TextStyle(color: Colors.white, fontSize: 30),
+                    ),
+                    Text('"${recommend.intro}"'
+                      ,
+                      style: TextStyle(color: Colors.white, fontSize: 15),textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              height: 110.0,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  //라인 색상을 전환할 때 사용
+                  colors: <Color>[Color(0x00736AB7), Colors.black],
+                  stops: [0.0, 0.9], //시작과 끝을 설정
+                  begin: FractionalOffset(0.0, 0.0),
+                  end: FractionalOffset(0.0, 0.9),
+                ),
+              ),
             ),
           ),
 

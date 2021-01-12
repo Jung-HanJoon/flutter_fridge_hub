@@ -108,6 +108,7 @@ class _RecipePageState extends State<RecipePage> {
                           recipe = value[1];
                         }));
                   });
+                  controller.text=suggestion;
                 },
               )
             ]),
