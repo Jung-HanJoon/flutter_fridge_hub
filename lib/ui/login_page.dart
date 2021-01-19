@@ -37,8 +37,11 @@ class LoginPage extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                           child: Text('''냉장고를\n부탁해''', style: TextStyle(color: Colors.white, fontSize: 80, fontWeight: FontWeight.bold),)),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
                       child: SignInButton(
                         Buttons.Google,
                         onPressed: (){
@@ -47,7 +50,7 @@ class LoginPage extends StatelessWidget {
                             MaterialPageRoute(builder: (context)=> MainPage(user)));
                           });
                         },
-                      )
+                      ),
                     ),
                   ],
                 ),

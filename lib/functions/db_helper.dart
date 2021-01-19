@@ -102,11 +102,28 @@ class DBHelper {
     return ing;
   }
 
-  Future<List<Recommend>> getRecommendList(List<String> ing) async {
+  // Future<List<Recommend>> getRecommendList1(List<String> ing) async {
+  //   final db = await database;
+  //   String a='(';
+  //
+  //   for(int i=0; i<ing.length;i++){
+  //     a += "'${ing[i]}'";
+  //     if(i==ing.length-1)break;
+  //     a += ', ';
+  //   }
+  //   a +=')';
+  //
+  //
+  //   List<Map<String, dynamic>> result = await db.rawQuery("SELECT Fimg, Intro, FName, difficult, time, Fdcat FROM BASE WHERE FoodID IN(SELECT FoodId FROM ING WHERE IName IN $a GROUP BY FoodId order by count(FoodId) desc Limit 5)");
+  //   //List<Map<String, dynamic>> result = await db.query('ING', where: 'FoodId', whereArgs: [foodid]);
+  //   print(result);
+  //   List<Recommend> recommended = result.map((e) =>Recommend(fName: e['FName'], intro: e['Intro'], fImg: e['Fimg'], difficult: e['difficult'], time: e['time'], cat: e['Fdcat'])).toList();
+  //   return recommended;
+  // }
+
+  Future<List<Recommend>> getRecommendList3(List<String> ing) async {
     final db = await database;
-    String a='(';
-    // print("'$ing, '");
-    // ing.map((e) => a+="'$e'"+'');
+    String a ='(';
 
     for(int i=0; i<ing.length;i++){
       a += "'${ing[i]}'";
@@ -115,43 +132,10 @@ class DBHelper {
     }
     a +=')';
 
-    print(ing);
-    print(a);
-    List<Map<String, dynamic>> result = await db.rawQuery("SELECT Fimg, Intro, FName, difficult, time, Fdcat FROM BASE WHERE FoodID IN(SELECT FoodId FROM ING WHERE IName IN $a GROUP BY FoodId order by count(FoodId) desc Limit 5)");
-    //List<Map<String, dynamic>> result = await db.query('ING', where: 'FoodId', whereArgs: [foodid]);
-    print('result = $result');
-    List<Recommend> recommended = result.map((e) =>Recommend(e['FName'], e['Intro'], e['Fimg'], e['difficult'], e['time'], e['Fdcat'])).toList();
-    return recommended;
+    List<Map<String, dynamic>> result = await db.rawQuery("SELECT BASE.FName, BASE.Intro, BASE.Fimg, BASE.difficult, BASE.time, BASE.Fdcat, b.FoodId, b.가진재료수 , a.필요개수 FROM (SELECT FoodId, count(FoodId) as '필요개수' FROM ING GROUP BY FoodId)as a,(SELECT FoodId, count(FoodId) as '가진재료수'FROM ING WHERE IName IN $a GROUP BY FoodId) as b, BASE WHERE a.FoodId=b.FoodId AND b.FoodId = BASE.FoodID AND a.FoodId = Base.FoodID GROUP BY BASE.FoodID ORDER BY CAST(b.'가진재료수' AS FLOAT)/CAST(a.'필요개수' AS FLOAT) DESC LIMIT 10");
+    print(result);
+    List<Recommend> recommended2 = result.map((e) =>Recommend(fName: e['FName'], intro: e['Intro'], fImg: e['Fimg'], difficult: e['difficult'], time: e['time'], cat: e['Fdcat'], need: e['필요개수'].toString(), ready: e['가진재료수'].toString())).toList();
+    return recommended2;
   }
-
-
-  //
-  // getRecipe(String fname) async {
-  //   final db = await database;
-  //   var res = await db.rawQuery('SELECT * FROM BASE WHERE FName = ?', [fname]);
-  //   return res.isNotEmpty ? res.asMap( ).toList() : Null;
-  // }
-  //
-  // //Read All
-  // Future<List<Dog>> getAllDogs() async {
-  //   final db = await database;
-  //   var res = await db.rawQuery('SELECT * FROM $TableName');
-  //   List<Dog> list = res.isNotEmpty ? res.map((c) => Dog(id:c['id'], name:c['name'])).toList() : [];
-  //
-  //   return list;
-  // }
-  //
-  // //Delete
-  // deleteDog(int id) async {
-  //   final db = await database;
-  //   var res = db.rawDelete('DELETE FROM $TableName WHERE id = ?', [id]);
-  //   return res;
-  // }
-  //
-  // //Delete All
-  // deleteAllDogs() async {
-  //   final db = await database;
-  //   db.rawDelete('DELETE FROM $TableName');
-  // }
 
 }

@@ -42,7 +42,7 @@ class _SettingPageState extends State<SettingPage> {
           onPressed: (){
             signOutGoogle();
             FirebaseAuth.instance.signOut();
-            Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) {return LoginPage();}), ModalRoute.withName('/'));
+            // Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) {return LoginPage();}), ModalRoute.withName('/'));
           },
         ),
         ]

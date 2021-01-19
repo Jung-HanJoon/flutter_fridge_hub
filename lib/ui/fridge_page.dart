@@ -71,16 +71,66 @@ class _FridgePageState extends State<FridgePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('images/banner.png'),
-              fit: BoxFit.cover,
+        // backgroundColor: Colors.white,
+        // flexibleSpace: Container(
+        //   decoration: BoxDecoration(
+        //     image: DecorationImage(
+        //       image: AssetImage('images/banner.png'),
+        //       fit: BoxFit.cover,
+        //     ),
+        //   ),
+        // ),
+        // backgroundColor: Colors.transparent,
+        title: Row(
+          children: [
+            Text("냉장고 관리"
+                // , style: TextStyle(color: Colors.black),
+                ),
+            Spacer(),
+            Container(
+              padding: EdgeInsets.zero,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25),
+                  color: Colors.white.withOpacity(0.4)),
+              width: 250,
+              height: 40,
+              child: TypeAheadField(
+                textFieldConfiguration: TextFieldConfiguration(
+                  controller: controller,
+                  autofocus: false,
+                  style: DefaultTextStyle.of(context)
+                      .style
+                      .copyWith(fontStyle: FontStyle.italic),
+                  decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25)),
+                      hintText: "재료 추가하기",
+                      fillColor: Colors.white70),
+                ),
+                suggestionsCallback: (pattern) async {
+                  return ingList.where(
+                      (s) => s.toLowerCase().contains(pattern.toLowerCase()));
+                },
+                itemBuilder: (context, suggestion) {
+                  return ListTile(
+                    leading: IconButton(
+                      icon: Icon(Icons.shopping_cart),
+                      onPressed: () => addCart(suggestion),
+                    ),
+                    title: Text(suggestion),
+                    trailing: IconButton(
+                      icon: Icon(Icons.add),
+                      onPressed: () => addIng(suggestion),
+                    ),
+                  );
+                },
+                onSuggestionSelected: (suggestion) {
+                  controller.text = suggestion;
+                },
+              ),
             ),
-          ),
+          ],
         ),
-        backgroundColor: Colors.transparent,
-        title: Text("냉장고 관리"),
       ),
       body: Container(
         width: double.infinity,
@@ -90,88 +140,68 @@ class _FridgePageState extends State<FridgePage> {
               image: AssetImage('images/fridgeback.png'), fit: BoxFit.cover),
         ),
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Column(children: <Widget>[
-                Padding(
-
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    color: Colors.white,
-                    child: TypeAheadField(
-
-                      textFieldConfiguration: TextFieldConfiguration(
-                          controller: controller,
-                          autofocus: false,
-                          style: DefaultTextStyle.of(context)
-                              .style
-                              .copyWith(fontStyle: FontStyle.italic),
-                          decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: "재료 추가하기",
-                              fillColor: Colors.white70
-                          ),),
-                      suggestionsCallback: (pattern) async {
-                        return ingList.where(
-                            (s) => s.toLowerCase().contains(pattern.toLowerCase()));
-                      },
-                      itemBuilder: (context, suggestion) {
-                        return ListTile(
-                          leading: IconButton(
-                            icon: Icon(Icons.shopping_cart),
-                            onPressed: () => addCart(suggestion),
-                          ),
-                          title: Text(suggestion),
-                          trailing: IconButton(
-                            icon: Icon(Icons.add),
-                            onPressed: () => addIng(suggestion),
-                          ),
-                        );
-                      },
-                      onSuggestionSelected: (suggestion) {
-                        controller.text = suggestion;
-                      },
-                    ),
-                  ),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 10,
                 ),
-              ]),
-              Row(
-                children: [
-                  Image(
-                    image: AssetImage('images/ic_fr.png'),
-                    height: 50,
-                    width: 50,
-                  ),
-                  Text(
-                    '냉장고 관리',
-                    style: TextStyle(color: Colors.white, fontSize: 30),
-                  ),
-                ],
-              ),
-              _buildIngGrid('ing_list'),
-              Row(
-                children: [
-                  Image(
-                    image: AssetImage('images/ic_bc.png'),
-                    height: 50,
-                    width: 50,
-                  ),
-                  Text(
-                    '장바구니 관리',
-                    style: TextStyle(color: Colors.white, fontSize: 30),
-                  )
-                ],
-              ),
-
-              _buildIngGrid('cart_list'),
-            ],
+                Row(
+                  children: [
+                    Image(
+                      image: AssetImage('images/ic_fr.png'),
+                      height: 50,
+                      width: 50,
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      '냉장고 관리',
+                      style: TextStyle(color: Colors.white, fontSize: 30),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Container(
+                    decoration: BoxDecoration(
+                      color: Colors.brown.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: _buildIngGrid('ing_list')),
+                SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  children: [
+                    Image(
+                      image: AssetImage('images/ic_bc.png'),
+                      height: 50,
+                      width: 50,
+                    ),
+                    Text(
+                      '장바구니 관리',
+                      style: TextStyle(color: Colors.white, fontSize: 30),
+                    )
+                  ],
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Container(
+                    decoration: BoxDecoration(
+                      color: Colors.brown.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: _buildIngGrid('cart_list')),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-
-
 
   Widget _buildIngGrid(String category) {
     return SingleChildScrollView(
@@ -186,17 +216,17 @@ class _FridgePageState extends State<FridgePage> {
                   .collection(category)
                   .snapshots(),
               builder: (context, snapshot) {
-                if(!snapshot.hasData){
+                if (!snapshot.hasData) {
                   return Center(
                     child: CircularProgressIndicator(),
                   );
-                }else{
+                } else {
                   return StaggeredGridView.countBuilder(
                     crossAxisCount: 5,
                     itemCount: snapshot.data.docs.length,
                     itemBuilder: (BuildContext context, int index) {
                       final fridge =
-                      Fridge.fromSnapshot(snapshot.data.docs[index]);
+                          Fridge.fromSnapshot(snapshot.data.docs[index]);
                       return InkWell(
                         onTap: () {
                           var dialtec = TextEditingController();
@@ -236,20 +266,20 @@ class _FridgePageState extends State<FridgePage> {
                         },
                         child: Container(
                             child: CircleAvatar(
-                              backgroundImage: AssetImage('images/dish.png'),
-                              backgroundColor: Colors.white,
-                              child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        fridge.iName,
-                                        style: TextStyle(color: Colors.black),
-                                      ),
-                                      Text(fridge.quantity),
-                                    ],
-                                  )),
-                            )),
+                          backgroundImage: AssetImage('images/dish.png'),
+                          backgroundColor: Colors.white,
+                          child: Center(
+                              child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                fridge.iName,
+                                style: TextStyle(color: Colors.black),
+                              ),
+                              Text(fridge.quantity),
+                            ],
+                          )),
+                        )),
                       );
                     },
                     staggeredTileBuilder: (int index) =>

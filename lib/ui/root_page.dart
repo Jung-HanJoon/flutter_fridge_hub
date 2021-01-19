@@ -6,13 +6,13 @@ class RootPage extends StatelessWidget {
   FirebaseAuth mAuth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
-    if(mAuth.currentUser!=null){
-      return MainPage(mAuth.currentUser);
-    }else{
+    // if(mAuth.currentUser!=null){
+    //   return MainPage(mAuth.currentUser);
+    // }else{
       return StreamBuilder<User>(
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-          if(snapshot.hasData){
-            return MainPage(snapshot.data);
+          if(mAuth.currentUser!=null){
+            return MainPage(mAuth.currentUser);
           }else{
             return LoginPage();
           }
@@ -20,4 +20,3 @@ class RootPage extends StatelessWidget {
       );
     }
   }
-}
