@@ -4,45 +4,46 @@ import 'package:f_fridgehub/model/ing.dart';
 import 'package:f_fridgehub/model/recipe.dart';
 import 'package:f_fridgehub/model/recommend.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
-
 class DBHelper {
-
   DBHelper._();
+
   static final DBHelper _db = DBHelper._();
+
   factory DBHelper() => _db;
 
   static Database _database;
 
   Future<Database> get database async {
-    if(_database != null) {
+    if (_database != null) {
       return _database;
-    }else {
+    } else {
       _database = await initDB();
       return _database;
     }
   }
 
-  Future initDB() async{
-    final dbPath = await getDatabasesPath();//디폴트 db 저장 path를 찾음(and/ios 알아서)
-    final path  = join(dbPath, "cook.db");//경로 합치기
+  Future initDB() async {
+    final dbPath = await getDatabasesPath(); //디폴트 db 저장 path를 찾음(and/ios 알아서)
+    final path = join(dbPath, "cook.db"); //경로 합치기
 
-    final exist = await databaseExists(path);//db가 저장되어있는지 확인
+    final exist = await databaseExists(path); //db가 저장되어있는지 확인
 
-    if(exist){
+    if (exist) {
       print('db already exsits');
-    }else{//db가 없다면 assets으로부터 복사함
+    } else {
+      //db가 없다면 assets으로부터 복사함
       print('creating a copy from assets');
 
-      try{
+      try {
         await Directory(dirname(path)).create(recursive: true);
-      }catch(_){}
+      } catch (_) {}
 
       ByteData data = await rootBundle.load(join("assets", "cook.db"));
-      List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      List<int> bytes =
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
 
       await File(path).writeAsBytes(bytes, flush: true);
 
@@ -52,90 +53,134 @@ class DBHelper {
     return await openDatabase('cook.db');
   }
 
-  //Read RecipeList
   Future<List<String>> getRecipeList() async {
     final db = await database;
     var result = await db.rawQuery('SELECT FName FROM BASE');
 
-    // print the results
-    return result.isNotEmpty ? result.map((e) => e['FName'].toString()).toList() : Null;
+    return result.isNotEmpty
+        ? result.map((e) => e['FName'].toString()).toList()
+        : Null;
   }
 
   Future<Base> getBaseRecipe(String fname) async {
     final db = await database;
-    var result = await db.rawQuery('SELECT * FROM BASE WHERE FName = ?', [fname]);
+    var result =
+        await db.rawQuery('SELECT * FROM BASE WHERE FName = ?', [fname]);
 
-    List<Base> base = result.map((e) => Base(foodID: e['FoodID'], fName: e['FName'], intro: e['Intro'], fdCat: e['Fdcat'], time: e['time'], difficult: e['difficult'], fImg: e['Fimg'])).toList();
+    List<Base> base = result
+        .map((e) => Base(
+            foodID: e['FoodID'],
+            fName: e['FName'],
+            intro: e['Intro'],
+            fdCat: e['Fdcat'],
+            time: e['time'],
+            difficult: e['difficult'],
+            fImg: e['Fimg']))
+        .toList();
 
     return result.isNotEmpty ? base[0] : Null;
   }
 
   Future<List<Ing>> getIng(String foodid) async {
     final db = await database;
-    List<Map<String, dynamic>> result1 = await db.rawQuery("SELECT * FROM ING WHERE FoodId = ?",[foodid]);
+    List<Map<String, dynamic>> result1 =
+        await db.rawQuery("SELECT * FROM ING WHERE FoodId = ?", [foodid]);
 
-    //List<Map<String, dynamic>> result = await db.query('ING', where: 'FoodId', whereArgs: [foodid]);
-    List<Ing> ing = result1.map((e) =>
-      Ing(e['FoodId'], e['Iid'], e['IName'], e['Quantity'], e['irdnt_ty_code'], e['ICat'])
-    ).toList();
+    List<Ing> ing = result1
+        .map((e) => Ing(e['FoodId'], e['Iid'], e['IName'], e['Quantity'],
+            e['irdnt_ty_code'], e['ICat']))
+        .toList();
 
     return ing;
   }
 
   Future<List<Recipe>> getRecipe(String foodid) async {
     final db = await database;
-    List<Map<String, dynamic>> result2 = await db.rawQuery('SELECT * FROM RECIPE WHERE FoodId = ? order By POrder asc', [foodid]);
+    List<Map<String, dynamic>> result2 = await db.rawQuery(
+        'SELECT * FROM RECIPE WHERE FoodId = ? order By POrder asc', [foodid]);
 
-    //List<Map<String, dynamic>> result = await db.query('RECIPE', where: 'FoodId', whereArgs: [foodid], orderBy: 'POrder');
-    List<Recipe> recipe = result2.map((e) => Recipe(pId: e['Pid'], foodId: e['FoodId'], pOrder: e['POrder'], process: e['Process'], pImg: e['Pimg'], tip: e['Tip'])).toList();
+    List<Recipe> recipe = result2
+        .map((e) => Recipe(
+            pId: e['Pid'],
+            foodId: e['FoodId'],
+            pOrder: e['POrder'],
+            process: e['Process'],
+            pImg: e['Pimg'],
+            tip: e['Tip']))
+        .toList();
     return recipe;
   }
-
 
   Future<List<String>> getIngList() async {
     final db = await database;
     List<Map<String, dynamic>> result = await db.rawQuery("SELECT distinct IName FROM ING");
-
-    //List<Map<String, dynamic>> result = await db.query('ING', where: 'FoodId', whereArgs: [foodid]);
-    List<String> ing = result.map((e) =>e['IName'].toString()).toList();
+    List<String> ing = result.map((e) => e['IName'].toString()).toList();
 
     return ing;
   }
 
-  // Future<List<Recommend>> getRecommendList1(List<String> ing) async {
-  //   final db = await database;
-  //   String a='(';
-  //
-  //   for(int i=0; i<ing.length;i++){
-  //     a += "'${ing[i]}'";
-  //     if(i==ing.length-1)break;
-  //     a += ', ';
-  //   }
-  //   a +=')';
-  //
-  //
-  //   List<Map<String, dynamic>> result = await db.rawQuery("SELECT Fimg, Intro, FName, difficult, time, Fdcat FROM BASE WHERE FoodID IN(SELECT FoodId FROM ING WHERE IName IN $a GROUP BY FoodId order by count(FoodId) desc Limit 5)");
-  //   //List<Map<String, dynamic>> result = await db.query('ING', where: 'FoodId', whereArgs: [foodid]);
-  //   print(result);
-  //   List<Recommend> recommended = result.map((e) =>Recommend(fName: e['FName'], intro: e['Intro'], fImg: e['Fimg'], difficult: e['difficult'], time: e['time'], cat: e['Fdcat'])).toList();
-  //   return recommended;
-  // }
-
-  Future<List<Recommend>> getRecommendList3(List<String> ing) async {
+  Future<List<Recommend>> getRecommendList1(
+      List<String> ing, bool isChecked) async {
     final db = await database;
-    String a ='(';
+    String a = '(';
 
-    for(int i=0; i<ing.length;i++){
+    for (int i = 0; i < ing.length; i++) {
       a += "'${ing[i]}'";
-      if(i==ing.length-1)break;
+      if (i == ing.length - 1) break;
       a += ', ';
     }
-    a +=')';
+    a += ')';
+    List<String> subQuery = ['', ''];
+    if (isChecked) {
+      subQuery = ["WHERE ICat is NOT '양념'", "AND ICat is NOT '양념'"];
+    }
 
-    List<Map<String, dynamic>> result = await db.rawQuery("SELECT BASE.FName, BASE.Intro, BASE.Fimg, BASE.difficult, BASE.time, BASE.Fdcat, b.FoodId, b.가진재료수 , a.필요개수 FROM (SELECT FoodId, count(FoodId) as '필요개수' FROM ING GROUP BY FoodId)as a,(SELECT FoodId, count(FoodId) as '가진재료수'FROM ING WHERE IName IN $a GROUP BY FoodId) as b, BASE WHERE a.FoodId=b.FoodId AND b.FoodId = BASE.FoodID AND a.FoodId = Base.FoodID GROUP BY BASE.FoodID ORDER BY CAST(b.'가진재료수' AS FLOAT)/CAST(a.'필요개수' AS FLOAT) DESC LIMIT 10");
-    print(result);
-    List<Recommend> recommended2 = result.map((e) =>Recommend(fName: e['FName'], intro: e['Intro'], fImg: e['Fimg'], difficult: e['difficult'], time: e['time'], cat: e['Fdcat'], need: e['필요개수'].toString(), ready: e['가진재료수'].toString())).toList();
-    return recommended2;
+    List<Map<String, dynamic>> result = await db.rawQuery(
+        "SELECT BASE.FName, BASE.Intro, BASE.Fimg, BASE.difficult, BASE.time, BASE.Fdcat, b.FoodId, b.가진재료수 , a.필요개수 FROM (SELECT FoodId, count(FoodId) as '필요개수' FROM ING ${subQuery[0]} GROUP BY FoodId)as a, (SELECT FoodId, count(FoodId) as '가진재료수'FROM ING WHERE IName IN $a ${subQuery[1]} GROUP BY FoodId) as b, BASE WHERE a.FoodId=b.FoodId AND b.FoodId = BASE.FoodID AND a.FoodId = Base.FoodID GROUP BY BASE.FoodID ORDER BY b.'가진재료수' DESC LIMIT 10");
+    List<Recommend> recommended = result
+        .map((e) => Recommend(
+            fName: e['FName'],
+            intro: e['Intro'],
+            fImg: e['Fimg'],
+            difficult: e['difficult'],
+            time: e['time'],
+            cat: e['Fdcat'],
+            need: e['필요개수'].toString(),
+            ready: e['가진재료수'].toString()))
+        .toList();
+    return recommended;
   }
 
+  Future<List<Recommend>> getRecommendList2(
+      List<String> ing, bool isChecked) async {
+    final db = await database;
+    String a = '(';
+
+    for (int i = 0; i < ing.length; i++) {
+      a += "'${ing[i]}'";
+      if (i == ing.length - 1) break;
+      a += ', ';
+    }
+    a += ')';
+
+    List<String> subQuery = ['', ''];
+    if (isChecked) {
+      subQuery = ["WHERE ICat is NOT '양념'", "AND ICat is NOT '양념'"];
+    }
+
+    List<Map<String, dynamic>> result = await db.rawQuery(
+        "SELECT BASE.FName, BASE.Intro, BASE.Fimg, BASE.difficult, BASE.time, BASE.Fdcat, b.FoodId, b.가진재료수 , a.필요개수 FROM (SELECT FoodId, count(FoodId) as '필요개수' FROM ING ${subQuery[0]} GROUP BY FoodId)as a,(SELECT FoodId, count(FoodId) as '가진재료수'FROM ING WHERE IName IN $a ${subQuery[1]} GROUP BY FoodId) as b, BASE WHERE a.FoodId=b.FoodId AND b.FoodId = BASE.FoodID AND a.FoodId = Base.FoodID GROUP BY BASE.FoodID ORDER BY CAST(b.'가진재료수' AS FLOAT)/CAST(a.'필요개수' AS FLOAT) DESC LIMIT 10");
+    List<Recommend> recommended2 = result
+        .map((e) => Recommend(
+            fName: e['FName'],
+            intro: e['Intro'],
+            fImg: e['Fimg'],
+            difficult: e['difficult'],
+            time: e['time'],
+            cat: e['Fdcat'],
+            need: e['필요개수'].toString(),
+            ready: e['가진재료수'].toString()))
+        .toList();
+    return recommended2;
+  }
 }

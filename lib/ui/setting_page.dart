@@ -10,7 +10,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:animations/animations.dart';
 
 class SettingPage extends StatefulWidget {
-  User user;
+  final User user;
   SettingPage(this.user);
 
   @override
@@ -42,6 +42,7 @@ class _SettingPageState extends State<SettingPage> {
           onPressed: (){
             signOutGoogle();
             FirebaseAuth.instance.signOut();
+            Navigator.pop(context);
             // Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) {return LoginPage();}), ModalRoute.withName('/'));
           },
         ),

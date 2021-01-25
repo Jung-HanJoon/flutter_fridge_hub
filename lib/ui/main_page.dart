@@ -18,12 +18,11 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
 
   int index = 0;
-
   List<Widget> _pages;
-
 
   @override
   void initState() {
+    super.initState();
     _pages = [RecommendPage(widget.user), FridgePage(widget.user), RecipePage(widget.user), SharePage(widget.user), SettingPage(widget.user)];
   }
 

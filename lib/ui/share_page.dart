@@ -4,7 +4,7 @@ import 'package:timeline_tile/timeline_tile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SharePage extends StatefulWidget {
-  User user;
+  final User user;
   SharePage(this.user);
   @override
   _SharePageState createState() => _SharePageState();

@@ -1,3 +1,4 @@
+import 'package:f_fridgehub/costum_widget/BorderText.dart';
 import 'package:f_fridgehub/functions/db_helper.dart';
 import 'package:f_fridgehub/model/recommend.dart';
 import 'package:f_fridgehub/ui/recipe_page.dart';
@@ -6,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RecommendPage extends StatefulWidget {
-  User user;
+  final User user;
 
   RecommendPage(this.user);
 
@@ -16,51 +17,80 @@ class RecommendPage extends StatefulWidget {
 
 class _RecommendPageState extends State<RecommendPage> {
   DBHelper dbHelper = new DBHelper();
-  String dropdownValue = '재료 적중률';
+  String dropdownValue = '재료 보유율';
+  Size size;
+  bool isChecked = false;
 
   @override
   Widget build(BuildContext context) {
+    size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.orangeAccent,
         title: Text(
           "추천 레시피",
-          // style: TextStyle(color: Colors.black),
         ),
         actions: [
-          DropdownButton<String>(
-            value: dropdownValue,
-            onChanged: (String newValue) {
-              setState(() {
-                dropdownValue = newValue;
-              });
-            },
-            items: <String>['최대 소비', '재료 적중률', '주재료 우선']
-                .map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      isChecked = !isChecked;
+                    });
+                  },
+                  child: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white),
+                          borderRadius: BorderRadius.circular(100)),
+                      child: Container(
+                          margin: EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: isChecked
+                                      ? Colors.white
+                                      : Colors.transparent),
+                              color:
+                                  isChecked ? Colors.white : Colors.transparent,
+                              borderRadius: BorderRadius.circular(100)))),
+                ),
+              ),
+              Text(
+                '양념 제외',
+                style: TextStyle(
+                    color: isChecked ? Colors.white : Colors.grey[600]),
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              DropdownButton<String>(
+                value: dropdownValue,
+                onChanged: (String newValue) {
+                  setState(() {
+                    dropdownValue = newValue;
+                  });
+                },
+                items: <String>['최대 소비', '재료 보유율']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // SizedBox(height: 30,),
-            // Padding(
-            //   padding: const EdgeInsets.all(8.0),
-            //   child: Row(
-            //     children: [
-            //       Text('추천', style: TextStyle(fontSize: 35, color: Colors.deepPurple, fontWeight: FontWeight.bold),),
-            //       Text('레시피', style: TextStyle(fontSize: 35, color: Colors.deepOrange, fontWeight: FontWeight.bold),),
-            //     ],
-            //   ),
-            // ),
-            // SizedBox(height: 10,),
-            _buildBody(),
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
@@ -75,7 +105,7 @@ class _RecommendPageState extends State<RecommendPage> {
           .collection('ing_list')
           .snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.data.docs.isEmpty) {
+        if ((snapshot.data == null) || snapshot.data.docs.isEmpty) {
           return Image(
             image: AssetImage('images/img_empty3.png'),
             fit: BoxFit.fill,
@@ -90,20 +120,24 @@ class _RecommendPageState extends State<RecommendPage> {
   Widget _buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
     List<String> ingList =
         snapshot.map((e) => e.data()['iName'].toString()).toList();
-    print(ingList);
     return FutureBuilder(
-      future: dbHelper.getRecommendList3(ingList),
+      future: dropdownValue == '재료 보유율'
+          ? dbHelper.getRecommendList2(ingList, isChecked)
+          : dbHelper.getRecommendList1(ingList, isChecked),
       builder: (BuildContext context, AsyncSnapshot<List<Recommend>> snapshot) {
         if (snapshot.hasData) {
           return Padding(
             padding: const EdgeInsets.only(left: 8, right: 8),
-            child: Column(
-              children: snapshot.data.map((e) => _buildTile(e)).toList(),
-            ),
+            child: ListView.builder(
+                scrollDirection: Axis.vertical,
+                itemCount: snapshot.data.length,
+                itemBuilder: (context, index) =>
+                    _buildTile(snapshot.data[index])),
           );
         } else {
           return Image(
             image: AssetImage('images/img_empty3.png'),
+            width: size.width,
             fit: BoxFit.fill,
           );
         }
@@ -113,7 +147,7 @@ class _RecommendPageState extends State<RecommendPage> {
 
   Widget _buildTile(Recommend recommend) {
     return GestureDetector(
-      onTap: ()=> Navigator.push(context, _createRoute(recommend.fName)),
+      onTap: () => Navigator.push(context, _createRoute(recommend.fName)),
       child: Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: ClipRRect(
@@ -125,7 +159,7 @@ class _RecommendPageState extends State<RecommendPage> {
                 tag: recommend.fImg.toString(),
                 child: Image.network(
                   recommend.fImg,
-                  width: MediaQuery.of(context).size.width,
+                  width: size.width,
                   height: 300,
                   fit: BoxFit.cover,
                 ),
@@ -135,13 +169,13 @@ class _RecommendPageState extends State<RecommendPage> {
                 left: 10,
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    color: Colors.white.withOpacity(0.6)
-                  ),
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.white.withOpacity(0.6)),
                   child: Center(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text('재료 : ${recommend.ready} / ${recommend.need}'),
+                      child:
+                          Text('재료 : ${recommend.ready} / ${recommend.need}'),
                     ),
                   ),
                 ),
@@ -163,154 +197,46 @@ class _RecommendPageState extends State<RecommendPage> {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
-                    // mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Padding(padding: EdgeInsets.all(8.0), child: Container()),
-                      Stack(
-                        children: <Widget>[
-                          Text(
-                            '구분',
-                            style: TextStyle(
-                              fontSize: 20,
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 2
-                                ..color = Colors.white,
-                            ),
-                          ),
-                          // Solid text as fill.
-                          Text(
-                            '구분',
-                            style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.grey[800]),
-                          ),
-                        ],
+                      BorderText(
+                        text: '구분',
+                        size: 20,
+                        borderColor: Colors.white,
+                        textColor: Colors.grey[800],
                       ),
-                      Stack(
-                        children: <Widget>[
-                          Text(
-                            recommend.cat,
-                            style: TextStyle(
-                              fontSize: 35,
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 2
-                                ..color = Colors.black,
-                            ),
-                          ),
-                          // Solid text as fill.
-                          Text(
-                            recommend.cat,
-                            style: TextStyle(
-                                fontSize: 35,
-                                color: Colors.white),
-                          ),
-                        ],
+                      BorderText(
+                        text: recommend.cat,
+                        size: 35,
+                        borderColor: Colors.black,
+                        textColor: Colors.white,
                       ),
-                      // Text(
-                      //   recommend.cat,
-                      //   style: TextStyle(fontSize: 35),
-                      // ),
                       Padding(padding: EdgeInsets.all(8.0), child: Container()),
-                      Stack(
-                        children: <Widget>[
-                          Text(
-                            '난이도',
-                            style: TextStyle(
-                              fontSize: 20,
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 2
-                                ..color = Colors.white,
-                            ),
-                          ),
-                          // Solid text as fill.
-                          Text(
-                            '난이도',
-                            style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.grey[800]),
-                          ),
-                        ],
+                      BorderText(
+                        text: '난이도',
+                        size: 20,
+                        borderColor: Colors.white,
+                        textColor: Colors.grey[800],
                       ),
-                      Stack(
-                        children: <Widget>[
-                          Text(
-                            recommend.difficult,
-                            style: TextStyle(
-                              fontSize: 35,
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 2
-                                ..color = Colors.black,
-                            ),
-                          ),
-                          // Solid text as fill.
-                          Text(
-                            recommend.difficult,
-                            style: TextStyle(
-                                fontSize: 35,
-                                color: Colors.white),
-                          ),
-                        ],
+                      BorderText(
+                        text: recommend.difficult,
+                        size: 35,
+                        borderColor: Colors.black,
+                        textColor: Colors.white,
                       ),
-                      // Text(
-                      //   recommend.difficult,
-                      //   style: TextStyle(fontSize: 35),
-                      // ),
                       Padding(padding: EdgeInsets.all(8.0), child: Container()),
-                      Stack(
-                        children: <Widget>[
-                          Text(
-                            '조리시간',
-                            style: TextStyle(
-                              fontSize: 20,
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 2
-                                ..color = Colors.white,
-                            ),
-                          ),
-                          // Solid text as fill.
-                          Text(
-                            '조리시간',
-                            style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.grey[800]),
-                          ),
-                        ],
+                      BorderText(
+                        text: '조리시간',
+                        size: 20,
+                        borderColor: Colors.white,
+                        textColor: Colors.grey[800],
                       ),
-                      Stack(
-                        children: <Widget>[
-                          Text(
-                            recommend.time,
-                            style: TextStyle(
-                              fontSize: 35,
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 2
-                                ..color = Colors.black,
-                            ),
-                          ),
-                          // Solid text as fill.
-                          Text(
-                            recommend.time,
-                            style: TextStyle(
-                                fontSize: 35,
-                                color: Colors.white),
-                          ),
-                        ],
+                      BorderText(
+                        text: recommend.time,
+                        size: 35,
+                        borderColor: Colors.black,
+                        textColor: Colors.white,
                       ),
-                      // Text(
-                      //   '조리시간',
-                      //   style: TextStyle(fontSize: 20, color: Colors.grey[800]),
-                      // ),
-
-                      // Text(
-                      //   recommend.time,
-                      //   style: TextStyle(fontSize: 35),
-                      // ),
                     ],
                   ),
                 ),
@@ -340,9 +266,8 @@ class _RecommendPageState extends State<RecommendPage> {
                             Text(
                               recommend.fName,
                               style: TextStyle(
-                                fontSize: 30,
-                                color: Colors.orange[400]),
-                              ),
+                                  fontSize: 30, color: Colors.orange[400]),
+                            ),
                           ],
                         ),
                         Text(
@@ -356,7 +281,6 @@ class _RecommendPageState extends State<RecommendPage> {
                   height: 110.0,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      //라인 색상을 전환할 때 사용
                       colors: <Color>[Color(0x00777777), Colors.black],
                       stops: [0.0, 0.9], //시작과 끝을 설정
                       begin: FractionalOffset(0.0, 0.0),
@@ -371,9 +295,13 @@ class _RecommendPageState extends State<RecommendPage> {
       ),
     );
   }
-  Route _createRoute(String fname) {
+
+  Route _createRoute(String fName) {
     return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => RecipePage(widget.user, search: fname,),
+      pageBuilder: (context, animation, secondaryAnimation) => RecipePage(
+        widget.user,
+        search: fName,
+      ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(
           opacity: animation,

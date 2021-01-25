@@ -13,8 +13,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RecipePage extends StatefulWidget {
-  User user;
-  String search;
+  final User user;
+  final String search;
 
   RecipePage(this.user, {this.search});
 
@@ -30,6 +30,7 @@ class _RecipePageState extends State<RecipePage> {
   List<Ing> ing;
   List<Recipe> recipe;
   List<String> fridge = [];
+  String search;
 
   void _loadData() async {
     await dbHelper.getRecipeList().then((result) {
@@ -40,7 +41,7 @@ class _RecipePageState extends State<RecipePage> {
         });
       } else {
         setState(() {
-          recipeList = ['리스트', '호출', '실패', 'ㅜㅜ'];
+          recipeList = ['요리 정보를 찾을 수 없어요!'];
           print('db load fail');
         });
       }
@@ -50,13 +51,14 @@ class _RecipePageState extends State<RecipePage> {
   @override
   void initState() {
     _loadData();
-    getfromfridge();
+    getFromFridge();
     super.initState();
+    search=widget.search;
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.search != null) {
+    if (search != null) {
       recipe = null;
       ing = null;
       dbHelper.getBaseRecipe(widget.search).then((value) {
@@ -70,7 +72,7 @@ class _RecipePageState extends State<RecipePage> {
             }));
       });
       controller.text = widget.search;
-      widget.search = null;
+      search = null;
     }
     return Scaffold(
       backgroundColor: Colors.grey[300],
@@ -115,7 +117,7 @@ class _RecipePageState extends State<RecipePage> {
                     onSuggestionSelected: (suggestion) {
                       recipe = null;
                       ing = null;
-                      widget.search = null;
+                      search = null;
                       dbHelper.getBaseRecipe(suggestion).then((value) {
                         base = value;
                         Future.wait([
@@ -232,19 +234,19 @@ class _RecipePageState extends State<RecipePage> {
   Widget _buildIng() {
     List<Map<String, dynamic>> cartlist=[];
     if (ing != null) {
-      List<Ing> mainings = [];
-      List<Ing> subings = [];
-      List<Ing> sub2ings = [];
+      List<Ing> mainIngs = [];
+      List<Ing> subIngs = [];
+      List<Ing> sub2Ings = [];
       for (int i = 0; i < ing.length; i++) {
         switch (ing[i].iCat) {
           case '주재료':
-            mainings.add(ing[i]);
+            mainIngs.add(ing[i]);
             break;
           case '부재료':
-            subings.add(ing[i]);
+            subIngs.add(ing[i]);
             break;
           case '양념':
-            sub2ings.add(ing[i]);
+            sub2Ings.add(ing[i]);
             break;
         }
       }
@@ -284,7 +286,7 @@ class _RecipePageState extends State<RecipePage> {
                         ],
                       ))
                       ..addAll(
-                        mainings.map((e) {
+                        mainIngs.map((e) {
                           TextStyle tstyle = new TextStyle(color: Colors.black);
                           if (fridge.contains(e.iName)) {
                             tstyle = TextStyle(color: Colors.blue);
@@ -320,7 +322,7 @@ class _RecipePageState extends State<RecipePage> {
                         ],
                       ))
                       ..addAll(
-                        subings.map((e) {
+                        subIngs.map((e) {
                           TextStyle tstyle = new TextStyle(color: Colors.black);
                           if (fridge.contains(e.iName)) {
                             tstyle = TextStyle(color: Colors.blue);
@@ -350,7 +352,7 @@ class _RecipePageState extends State<RecipePage> {
                         ],
                       ))
                       ..addAll(
-                        sub2ings.map((e) {
+                        sub2Ings.map((e) {
                           TextStyle tstyle = new TextStyle(color: Colors.black);
                           if (fridge.contains(e.iName)) {
                             tstyle = TextStyle(color: Colors.blue);
@@ -435,7 +437,7 @@ class _RecipePageState extends State<RecipePage> {
     }
   }
 
-  void getfromfridge() async {
+  void getFromFridge() async {
     var result = await FirebaseFirestore.instance
         .collection('fridge')
         .doc(widget.user.uid)
@@ -444,9 +446,7 @@ class _RecipePageState extends State<RecipePage> {
     setState(() {
       fridge = result.docs.map((e) => e['iName'].toString()).toList();
     });
-    print(fridge);
   }
-
 
   void addCart(List<Map<String, dynamic>> ings) {
     ings.forEach((element) {
@@ -454,7 +454,7 @@ class _RecipePageState extends State<RecipePage> {
           .collection('fridge')
           .doc(widget.user.uid)
           .collection('cart_list')
-          .add(element).catchError((onError)=>print(onError));
+          .add(element);
     });
   }
 }

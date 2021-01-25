@@ -346,7 +346,7 @@ packages:
     source: hosted
     version: "1.8.0-nullsafety.1"
   path_provider:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: path_provider
       url: "https://pub.dartlang.org"
