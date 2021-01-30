@@ -44,6 +44,8 @@ dev_dependencies:
   bot_toast: ^3.0.5
   timeline_tile: ^1.0.0
   animations: ^1.1.2
+  shared_preferences: ^0.5.12+4
+
 
 
 

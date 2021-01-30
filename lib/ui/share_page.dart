@@ -15,16 +15,17 @@ class _SharePageState extends State<SharePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration:
-          BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('images/banner.png'),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.orangeAccent,
+        // flexibleSpace: Container(
+        //   decoration:
+        //   BoxDecoration(
+        //     image: DecorationImage(
+        //       image: AssetImage('images/banner.png'),
+        //       fit: BoxFit.cover,
+        //     ),
+        //   ),
+        // ),
+        // backgroundColor: Colors.transparent,
         title: Text("공유 공간"),
       ),
       body: _buildTimeLine(),
@@ -34,20 +35,20 @@ class _SharePageState extends State<SharePage> {
 
   Widget _buildTimeLine() {
     return StreamBuilder(
-      stream: FirebaseFirestore.instance
-          .collection('fridge')
-          .doc(widget.user.uid)
-          .collection('timeline')
-          .snapshots(),
+      stream: FirebaseFirestore?.instance
+          ?.collection('fridge')
+          ?.doc(widget.user.uid)
+          ?.collection('timeline')
+          ?.snapshots(),
       builder: (context, snapshot) {
-        if(snapshot.data.docs.isEmpty){
+        if((snapshot?.data?.docs?.isEmpty ?? true)||(snapshot.data == null)){
           return Center(
             child: Text('타임라인은 공사중입니다')
             //CircularProgressIndicator(),
           );
         }else{
           List<Widget> a;
-    for(int i = 0 ; i< snapshot.data.docs.length ;i++){
+    for(int i = 0 ; i< snapshot?.data?.docs?.length ?? 0;i++){
       if(i==0){
         a.add(TimelineTile(
           isFirst: true,
@@ -84,7 +85,7 @@ class _SharePageState extends State<SharePage> {
       }
     }
           return Column(
-            children:snapshot.data.docs.map((e)=> TimelineTile(
+            children:snapshot?.data?.docs??[''].map((e)=> TimelineTile(
               isFirst: true,
               alignment: TimelineAlign.manual,
               lineXY: 0.3,

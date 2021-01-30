@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:f_fridgehub/functions/db_helper.dart';
-import 'package:f_fridgehub/main.dart';
 import 'package:f_fridgehub/model/base.dart';
 import 'package:f_fridgehub/model/ing.dart';
 import 'package:f_fridgehub/model/recipe.dart';
@@ -53,7 +52,7 @@ class _RecipePageState extends State<RecipePage> {
     _loadData();
     getFromFridge();
     super.initState();
-    search=widget.search;
+    search = widget.search;
   }
 
   @override
@@ -75,7 +74,7 @@ class _RecipePageState extends State<RecipePage> {
       search = null;
     }
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+        backgroundColor: Colors.grey[300],
         resizeToAvoidBottomPadding: false,
         // appBar: AppBar(title: Text('레시피'),),
         body: Stack(children: [
@@ -91,8 +90,8 @@ class _RecipePageState extends State<RecipePage> {
                     textFieldConfiguration: TextFieldConfiguration(
                         controller: controller,
                         autofocus: controller.text.isNotEmpty ? false : true,
-                        onTap: (){
-                          controller.text='';
+                        onTap: () {
+                          controller.text = '';
                         },
                         decoration: InputDecoration(
                             border: OutlineInputBorder(
@@ -207,12 +206,13 @@ class _RecipePageState extends State<RecipePage> {
                               Text(
                                 snapshot.data.fName,
                                 style: TextStyle(
-                                    fontSize: 30,
-                                    color: Colors.orange[400]),
+                                    fontSize: 30, color: Colors.orange[400]),
                               ),
                             ],
                           ),
-                          SizedBox(height: 8,),
+                          SizedBox(
+                            height: 8,
+                          ),
                           Text(
                             snapshot.data.intro,
                             textAlign: TextAlign.center,
@@ -232,7 +232,7 @@ class _RecipePageState extends State<RecipePage> {
   }
 
   Widget _buildIng() {
-    List<Map<String, dynamic>> cartlist=[];
+    List<Map<String, dynamic>> cartlist = [];
     if (ing != null) {
       List<Ing> mainIngs = [];
       List<Ing> subIngs = [];
@@ -258,7 +258,18 @@ class _RecipePageState extends State<RecipePage> {
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
-              BoxShadow( color: Colors.grey[500], offset: Offset(4.0, 4.0), blurRadius: 15.0, spreadRadius: 1.0, ), BoxShadow( color: Colors.white, offset: Offset(-4.0, -4.0), blurRadius: 15.0, spreadRadius: 1.0,)
+                    BoxShadow(
+                      color: Colors.grey[500],
+                      offset: Offset(4.0, 4.0),
+                      blurRadius: 15.0,
+                      spreadRadius: 1.0,
+                    ),
+                    BoxShadow(
+                      color: Colors.white,
+                      offset: Offset(-4.0, -4.0),
+                      blurRadius: 15.0,
+                      spreadRadius: 1.0,
+                    )
                   ],
                   color: Colors.grey[300]),
               child: Padding(
@@ -274,7 +285,11 @@ class _RecipePageState extends State<RecipePage> {
                           Divider(),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text('주재료', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
+                            child: Text(
+                              '주재료',
+                              style: TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
                           ),
                           Container(
                             height: 3,
@@ -290,8 +305,10 @@ class _RecipePageState extends State<RecipePage> {
                           TextStyle tstyle = new TextStyle(color: Colors.black);
                           if (fridge.contains(e.iName)) {
                             tstyle = TextStyle(color: Colors.blue);
-                          }else{
-                            cartlist.add(Map<String, dynamic>()..addAll({'iName':e.iName, 'quantity':e.quantity}));
+                          } else {
+                            cartlist.add(Map<String, dynamic>()
+                              ..addAll(
+                                  {'iName': e.iName, 'quantity': e.quantity}));
                           }
                           return ListTile(
                             leading: Text(
@@ -310,7 +327,9 @@ class _RecipePageState extends State<RecipePage> {
                           Divider(),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text('부재료', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                            child: Text('부재료',
+                                style: TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.bold)),
                           ),
                           Container(
                             height: 3,
@@ -326,8 +345,10 @@ class _RecipePageState extends State<RecipePage> {
                           TextStyle tstyle = new TextStyle(color: Colors.black);
                           if (fridge.contains(e.iName)) {
                             tstyle = TextStyle(color: Colors.blue);
-                          }else{
-                            cartlist.add(Map<String, dynamic>()..addAll({'iName':e.iName, 'quantity':e.quantity}));
+                          } else {
+                            cartlist.add(Map<String, dynamic>()
+                              ..addAll(
+                                  {'iName': e.iName, 'quantity': e.quantity}));
                           }
                           return ListTile(
                             leading: Text(e.iName, style: tstyle),
@@ -340,7 +361,9 @@ class _RecipePageState extends State<RecipePage> {
                           Divider(),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text('양념', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                            child: Text('양념',
+                                style: TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.bold)),
                           ),
                           Container(
                             height: 3,
@@ -356,21 +379,23 @@ class _RecipePageState extends State<RecipePage> {
                           TextStyle tstyle = new TextStyle(color: Colors.black);
                           if (fridge.contains(e.iName)) {
                             tstyle = TextStyle(color: Colors.blue);
-                          }else{
-                            cartlist.add(Map<String, dynamic>()..addAll({'iName':e.iName, 'quantity':e.quantity}));
+                          } else {
+                            cartlist.add(Map<String, dynamic>()
+                              ..addAll(
+                                  {'iName': e.iName, 'quantity': e.quantity}));
                           }
                           return ListTile(
                             leading: Text(e.iName, style: tstyle),
                             trailing: Text(e.quantity, style: tstyle),
                           );
                         }).toList(),
-                      )..add(
-                        ElevatedButton(onPressed: (){
-                          addCart(cartlist);
-                        }, child: Center(child: Text('장바구니 추가')),
-                        )
                       )
-                ),
+                      ..add(ElevatedButton(
+                        onPressed: () {
+                          addCart(cartlist);
+                        },
+                        child: Center(child: Text('장바구니 추가')),
+                      ))),
               ),
             ),
           ],
@@ -394,12 +419,28 @@ class _RecipePageState extends State<RecipePage> {
             a = e.pImg;
           }
           return ListTile(
-            leading: Text(e.pOrder.toString(), style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),),
+            leading: Text(
+              e.pOrder.toString(),
+              style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  fontStyle: FontStyle.italic),
+            ),
             title: Container(
               decoration: BoxDecoration(
                   boxShadow: [
-                    BoxShadow( color: Colors.grey[500], offset: Offset(4.0, 4.0), blurRadius: 15.0, spreadRadius: 1.0, ), BoxShadow( color: Colors.white, offset: Offset(-4.0, -4.0), blurRadius: 15.0, spreadRadius: 1.0,)
-
+                    BoxShadow(
+                      color: Colors.grey[500],
+                      offset: Offset(4.0, 4.0),
+                      blurRadius: 15.0,
+                      spreadRadius: 1.0,
+                    ),
+                    BoxShadow(
+                      color: Colors.white,
+                      offset: Offset(-4.0, -4.0),
+                      blurRadius: 15.0,
+                      spreadRadius: 1.0,
+                    )
                   ],
                   color: Colors.grey[300],
                   borderRadius: BorderRadius.circular(20)),
@@ -408,7 +449,10 @@ class _RecipePageState extends State<RecipePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(e.process, style: TextStyle(),),
+                    Text(
+                      e.process,
+                      style: TextStyle(),
+                    ),
                     SizedBox(
                       height: 8,
                     ),

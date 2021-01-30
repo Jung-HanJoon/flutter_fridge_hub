@@ -1,15 +1,13 @@
 import 'package:f_fridgehub/functions/db_helper.dart';
 import 'package:f_fridgehub/model/fridge.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class FridgePage extends StatefulWidget {
-  User user;
+  final User user;
 
   FridgePage(this.user);
 
@@ -22,6 +20,7 @@ class _FridgePageState extends State<FridgePage> {
   List<String> ingList = [];
   TextEditingController controller = TextEditingController();
   String text;
+  String currentFridge;
 
   void _loadData() async {
     await dbHelper.getIngList().then((result) {
@@ -65,6 +64,7 @@ class _FridgePageState extends State<FridgePage> {
   void initState() {
     super.initState();
     _loadData();
+    getFridge();
   }
 
   @override
@@ -72,6 +72,7 @@ class _FridgePageState extends State<FridgePage> {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.orangeAccent,
         title: Row(
           children: [
             Text("냉장고 관리"),
@@ -91,7 +92,7 @@ class _FridgePageState extends State<FridgePage> {
                       .style
                       .copyWith(fontStyle: FontStyle.italic),
                   decoration: InputDecoration(
-                    border: InputBorder.none,
+                      border: InputBorder.none,
                       // border: OutlineInputBorder(
                       //     borderRadius: BorderRadius.circular(15)),
                       hintText: "재료 추가하기",
@@ -153,7 +154,8 @@ class _FridgePageState extends State<FridgePage> {
                   height: 10,
                 ),
                 Container(
-                  height: size.height*0.3,
+                    clipBehavior: Clip.antiAlias,
+                    height: size.height * 0.3,
                     decoration: BoxDecoration(
                       color: Colors.brown.withOpacity(0.4),
                       borderRadius: BorderRadius.circular(15),
@@ -180,8 +182,8 @@ class _FridgePageState extends State<FridgePage> {
                   height: 10,
                 ),
                 Container(
-                  clipBehavior: Clip.antiAlias,
-                  height: size.height*0.3,
+                    clipBehavior: Clip.antiAlias,
+                    height: size.height * 0.3,
                     decoration: BoxDecoration(
                       color: Colors.brown.withOpacity(0.4),
                       borderRadius: BorderRadius.circular(15),
@@ -201,7 +203,7 @@ class _FridgePageState extends State<FridgePage> {
       child: StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection('fridge')
-            .doc(widget.user.uid)
+            .doc(currentFridge)
             .collection(category)
             .snapshots(),
         builder: (context, snapshot) {
@@ -213,9 +215,9 @@ class _FridgePageState extends State<FridgePage> {
             return StaggeredGridView.countBuilder(
               shrinkWrap: true,
               crossAxisCount: 5,
-              itemCount: snapshot.data.docs.length,
+              itemCount: snapshot.data?.docs?.length ?? 0,
               itemBuilder: (BuildContext context, int index) {
-                final fridge = Fridge.fromSnapshot(snapshot.data.docs[index]);
+                final fridge = Fridge.fromSnapshot(snapshot.data?.docs[index]);
                 return InkWell(
                   onTap: () {
                     var dialtec = TextEditingController();
@@ -257,15 +259,15 @@ class _FridgePageState extends State<FridgePage> {
                     backgroundImage: AssetImage('images/dish.png'),
                     backgroundColor: Colors.white,
                     child: Center(
-                    child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      fridge.iName,
-                      style: TextStyle(color: Colors.black),
-                    ),
-                    Text(fridge.quantity),
-                  ],
+                        child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          fridge.iName,
+                          style: TextStyle(color: Colors.black),
+                        ),
+                        Text(fridge.quantity),
+                      ],
                     )),
                   ),
                 );
@@ -278,5 +280,16 @@ class _FridgePageState extends State<FridgePage> {
         },
       ),
     );
+  }
+
+  void getFridge() async {
+    String temp = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(widget.user.uid)
+        .get()
+        .then((value) => value.data()['current_fridge'].toString());
+    setState(() {
+      currentFridge = temp;
+    });
   }
 }

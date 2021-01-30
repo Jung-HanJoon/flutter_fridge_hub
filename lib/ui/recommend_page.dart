@@ -1,4 +1,4 @@
-import 'package:f_fridgehub/costum_widget/BorderText.dart';
+import 'package:f_fridgehub/costum_widget/border_text.dart';
 import 'package:f_fridgehub/functions/db_helper.dart';
 import 'package:f_fridgehub/model/recommend.dart';
 import 'package:f_fridgehub/ui/recipe_page.dart';
@@ -20,6 +20,14 @@ class _RecommendPageState extends State<RecommendPage> {
   String dropdownValue = '재료 보유율';
   Size size;
   bool isChecked = false;
+  String current_fridge;
+
+
+  @override
+  void initState() {
+    super.initState();
+    getfridge();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,11 +109,11 @@ class _RecommendPageState extends State<RecommendPage> {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('fridge')
-          .doc(widget.user.uid)
+          .doc(current_fridge)
           .collection('ing_list')
           .snapshots(),
       builder: (context, snapshot) {
-        if ((snapshot.data == null) || snapshot.data.docs.isEmpty) {
+        if ((snapshot.data == null) || (snapshot.data.docs.isEmpty ?? true)) {
           return Image(
             image: AssetImage('images/img_empty3.png'),
             fit: BoxFit.fill,
@@ -310,4 +318,11 @@ class _RecommendPageState extends State<RecommendPage> {
       },
     );
   }
+
+  void getfridge() async{
+    String temp = await FirebaseFirestore.instance.collection('user').doc(widget.user.uid).get().then((value) => value.data()['current_fridge'].toString());
+    setState(() {
+      current_fridge = temp;
+    });
+}
 }
