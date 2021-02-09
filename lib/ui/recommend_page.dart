@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:f_fridgehub/costum_widget/border_text.dart';
 import 'package:f_fridgehub/functions/db_helper.dart';
 import 'package:f_fridgehub/model/recommend.dart';
@@ -20,13 +22,25 @@ class _RecommendPageState extends State<RecommendPage> {
   String dropdownValue = '재료 보유율';
   Size size;
   bool isChecked = false;
-  String current_fridge;
+  String currentFridge;
+  bool isLoading = true;
+
+  void startTimer() {
+    Timer.periodic(const Duration(seconds: 3), (t) {
+      t.cancel(); //stops the timer
+      if(mounted)
+      setState(() {
+        isLoading = false; //set loading to false
+      });
+    });
+  }
 
 
   @override
   void initState() {
     super.initState();
     getfridge();
+    startTimer();
   }
 
   @override
@@ -109,15 +123,12 @@ class _RecommendPageState extends State<RecommendPage> {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('fridge')
-          .doc(current_fridge)
+          .doc(currentFridge)
           .collection('ing_list')
           .snapshots(),
       builder: (context, snapshot) {
         if ((snapshot.data == null) || (snapshot.data.docs.isEmpty ?? true)) {
-          return Image(
-            image: AssetImage('images/img_empty3.png'),
-            fit: BoxFit.fill,
-          );
+          return isLoading ? Center(child: CircularProgressIndicator()) : Image(image: AssetImage('images/img_empty3.png'),fit: BoxFit.cover,);
         } else {
           return _buildList(context, snapshot.data.docs);
         }
@@ -133,22 +144,18 @@ class _RecommendPageState extends State<RecommendPage> {
           ? dbHelper.getRecommendList2(ingList, isChecked)
           : dbHelper.getRecommendList1(ingList, isChecked),
       builder: (BuildContext context, AsyncSnapshot<List<Recommend>> snapshot) {
-        if (snapshot.hasData) {
-          return Padding(
-            padding: const EdgeInsets.only(left: 8, right: 8),
-            child: ListView.builder(
-                scrollDirection: Axis.vertical,
-                itemCount: snapshot.data.length,
-                itemBuilder: (context, index) =>
-                    _buildTile(snapshot.data[index])),
-          );
-        } else {
-          return Image(
-            image: AssetImage('images/img_empty3.png'),
-            width: size.width,
-            fit: BoxFit.fill,
-          );
-        }
+        return AnimatedSwitcher(
+          child: snapshot.hasData ? Padding(
+        padding: const EdgeInsets.only(left: 8, right: 8),
+        child: ListView.builder(
+        scrollDirection: Axis.vertical,
+        itemCount: snapshot.data.length,
+        itemBuilder: (context, index) =>
+        _buildTile(snapshot.data[index])),
+        ) : CircularProgressIndicator()
+              ,
+          duration: Duration(milliseconds: 300),
+        );
       },
     );
   }
@@ -322,7 +329,7 @@ class _RecommendPageState extends State<RecommendPage> {
   void getfridge() async{
     String temp = await FirebaseFirestore.instance.collection('user').doc(widget.user.uid).get().then((value) => value.data()['current_fridge'].toString());
     setState(() {
-      current_fridge = temp;
+      currentFridge = temp;
     });
 }
 }

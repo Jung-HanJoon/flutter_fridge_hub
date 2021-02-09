@@ -183,4 +183,31 @@ class DBHelper {
         .toList();
     return recommended2;
   }
+
+  Future<List<Recommend>> getFavorList(
+      List ing) async {
+    final db = await database;
+    String a = '(';
+
+    for (int i = 0; i < ing.length; i++) {
+      a += "'${ing[i]}'";
+      if (i == ing.length - 1) break;
+      a += ', ';
+    }
+    a += ')';
+
+
+    List<Map<String, dynamic>> result = await db.rawQuery(
+        "SELECT FName, Intro, Fimg, difficult, time, Fdcat FROM BASE WHERE BASE.FoodID IN $a");
+    List<Recommend> recommended = result
+        .map((e) => Recommend(
+        fName: e['FName'],
+        intro: e['Intro'],
+        fImg: e['Fimg'],
+        difficult: e['difficult'],
+        time: e['time'],
+        cat: e['Fdcat']))
+        .toList();
+    return recommended;
+  }
 }

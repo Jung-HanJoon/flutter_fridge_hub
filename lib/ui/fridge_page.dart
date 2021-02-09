@@ -5,6 +5,7 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class FridgePage extends StatefulWidget {
   final User user;
@@ -207,12 +208,8 @@ class _FridgePageState extends State<FridgePage> {
             .collection(category)
             .snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          } else {
-            return StaggeredGridView.countBuilder(
+          return AnimatedSwitcher(
+            child: snapshot.hasData ? StaggeredGridView.countBuilder(
               shrinkWrap: true,
               crossAxisCount: 5,
               itemCount: snapshot.data?.docs?.length ?? 0,
@@ -260,23 +257,98 @@ class _FridgePageState extends State<FridgePage> {
                     backgroundColor: Colors.white,
                     child: Center(
                         child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          fridge.iName,
-                          style: TextStyle(color: Colors.black),
-                        ),
-                        Text(fridge.quantity),
-                      ],
-                    )),
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            AutoSizeText(
+                              fridge.iName,
+                              style: TextStyle(color: Colors.black),
+                              maxLines: 1,
+                            ),
+                            AutoSizeText(fridge.quantity,maxLines: 1,
+                            ),
+                          ],
+                        )),
                   ),
                 );
               },
               staggeredTileBuilder: (int index) => StaggeredTile.count(1, 1),
               mainAxisSpacing: 4.0,
               crossAxisSpacing: 4.0,
-            );
-          }
+            ) : Center(
+              child: CircularProgressIndicator(),
+            ),
+            duration: Duration(milliseconds: 500),
+          );
+          // if (!snapshot.hasData) {
+          //   return Center(
+          //     child: CircularProgressIndicator(),
+          //   );
+          // } else {
+          //   return StaggeredGridView.countBuilder(
+          //     shrinkWrap: true,
+          //     crossAxisCount: 5,
+          //     itemCount: snapshot.data?.docs?.length ?? 0,
+          //     itemBuilder: (BuildContext context, int index) {
+          //       final fridge = Fridge.fromSnapshot(snapshot.data?.docs[index]);
+          //       return InkWell(
+          //         onTap: () {
+          //           var dialtec = TextEditingController();
+          //           dialtec.text = fridge.quantity;
+          //           showDialog(
+          //               context: context,
+          //               builder: (context) {
+          //                 return AlertDialog(
+          //                   title: Text("개수 수정"),
+          //                   content: TextField(
+          //                     controller: dialtec,
+          //                   ),
+          //                   actions: [
+          //                     MaterialButton(
+          //                         child: Text("수정"),
+          //                         onPressed: () {
+          //                           fridge.reference.update({
+          //                             'quantity': dialtec.text,
+          //                           });
+          //                           Navigator.pop(context);
+          //                         }),
+          //                   ],
+          //                 );
+          //               });
+          //         },
+          //         onLongPress: () {
+          //           final snackBar = SnackBar(
+          //             content: Text('이 재료를 삭제하시겠습니까?'),
+          //             action: SnackBarAction(
+          //               label: '삭제',
+          //               onPressed: () {
+          //                 fridge.reference.delete();
+          //               },
+          //             ),
+          //           );
+          //           Scaffold.of(context).showSnackBar(snackBar);
+          //         },
+          //         child: CircleAvatar(
+          //           backgroundImage: AssetImage('images/dish.png'),
+          //           backgroundColor: Colors.white,
+          //           child: Center(
+          //               child: Column(
+          //             mainAxisAlignment: MainAxisAlignment.center,
+          //             children: [
+          //               Text(
+          //                 fridge.iName,
+          //                 style: TextStyle(color: Colors.black),
+          //               ),
+          //               Text(fridge.quantity),
+          //             ],
+          //           )),
+          //         ),
+          //       );
+          //     },
+          //     staggeredTileBuilder: (int index) => StaggeredTile.count(1, 1),
+          //     mainAxisSpacing: 4.0,
+          //     crossAxisSpacing: 4.0,
+          //   );
+          // }
         },
       ),
     );

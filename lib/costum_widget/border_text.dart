@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class BorderText extends StatelessWidget {
   const BorderText(
@@ -13,7 +14,7 @@ class BorderText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: <Widget>[
-        Text(
+        AutoSizeText(
           text,
           style: TextStyle(
             fontSize: size,
@@ -22,11 +23,13 @@ class BorderText extends StatelessWidget {
               ..strokeWidth = 2
               ..color = borderColor,
           ),
+          maxLines: 1,
         ),
         // Solid text as fill.
-        Text(
+        AutoSizeText(
           text,
           style: TextStyle(fontSize: size, color: textColor),
+          maxLines: 1,
         ),
       ],
     );

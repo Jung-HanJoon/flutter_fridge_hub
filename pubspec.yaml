@@ -45,8 +45,9 @@ dev_dependencies:
   timeline_tile: ^1.0.0
   animations: ^1.1.2
   shared_preferences: ^0.5.12+4
-
-
+  carousel_slider: ^3.0.0
+  auto_size_text: ^2.1.0
+  comment_tree: ^0.1.2
 
 
 

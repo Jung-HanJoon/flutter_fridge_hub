@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:f_fridgehub/ui/login_page.dart';
+import 'package:f_fridgehub/ui/root_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
@@ -57,14 +58,20 @@ class _SettingPageState extends State<SettingPage> {
           backgroundColor: Colors.orangeAccent,
           title: Text("사용자 설정"),
           actions: [
-            IconButton(
-                icon: Icon(Icons.logout),
-                onPressed: () {
-                  signOutGoogle();
-                  FirebaseAuth.instance.signOut();
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => LoginPage()));
-                })
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text('로그아웃'),
+                IconButton(
+                    icon: Icon(Icons.logout),
+                    onPressed: () {
+                      signOutGoogle();
+                      FirebaseAuth.instance.signOut();
+                      Navigator.pushReplacement(context,
+                          MaterialPageRoute(builder: (context) => LoginPage()));
+                    }),
+              ],
+            )
           ]),
       body: AnimatedContainer(
         duration: duration,
@@ -91,34 +98,49 @@ class _SettingPageState extends State<SettingPage> {
               padding: const EdgeInsets.all(8.0),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: FutureBuilder(
-                    future: FirebaseFirestore.instance
-                        ?.collection('user')
-                        ?.doc(widget.user.uid)
-                        ?.get()
-                        ?.then((value) => value?.data()),
-                    builder:
-                        (BuildContext context, AsyncSnapshot<Map> snapshot) {
-                      if ((snapshot?.data?.isEmpty ?? true) ||
-                          (snapshot?.data == null)) {
-                        return CircularProgressIndicator();
-                      } else {
-                        return Row(
-                          children: [
-                            if (snapshot?.data['group_list'] != null)
-                              ...snapshot?.data['group_list']?.map((value) {
-                                groupList.add(value['fridge']);
-                                return GroupTile(
-                                    activation:
-                                        snapshot?.data['current_fridge'] ==
-                                            value['fridge'],
-                                    fridge: value['fridge'].toString(),
-                                    user: widget.user);
-                              })?.toList(),
-                          ],
-                        );
-                      }
-                    }),
+                child: Column(
+                  children: [
+                    StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection('user')
+                          ?.doc(widget.user.uid)
+                          ?.snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<DocumentSnapshot> snapshot) {
+                        return AnimatedSwitcher(
+                            child: ((snapshot?.data?.get('group_list')[0] ==
+                                            null
+                                        ? true
+                                        : false) ||
+                                    (snapshot?.data == null))
+                                ? Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: SizedBox(
+                                      width: 150,
+                                      height: 150,
+                                    ),
+                                  )
+                                : Row(
+                                    children: [
+                                      if (snapshot?.data['group_list'] != null)
+                                        ...snapshot?.data['group_list']
+                                            ?.map((value) {
+                                          groupList.add(value['fridge']);
+                                          return GroupTile(
+                                              activation: snapshot?.data[
+                                                      'current_fridge'] ==
+                                                  value['fridge'],
+                                              fridge:
+                                                  value['fridge'].toString(),
+                                              user: widget.user);
+                                        })?.toList(),
+                                    ],
+                                  ),
+                            duration: Duration(milliseconds: 300));
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
             SizedBox(
@@ -283,6 +305,20 @@ class _SettingPageState extends State<SettingPage> {
                                         Colors.white)),
                             onPressed: () {},
                             child: Text('건의하기')),
+                      ),
+                      ListTile(
+                        title: ElevatedButton(
+                            style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        Colors.white)),
+                            onPressed: () {
+                              return Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => TutorialPage()));
+                            },
+                            child: Text('튜토리얼 보기')),
                       ),
                       SizedBox(
                         height: 10,
