@@ -3,10 +3,13 @@ import 'dart:async';
 import 'package:f_fridgehub/costum_widget/border_text.dart';
 import 'package:f_fridgehub/functions/db_helper.dart';
 import 'package:f_fridgehub/model/recommend.dart';
+import 'package:f_fridgehub/state/scrolldetector.dart';
 import 'package:f_fridgehub/ui/recipe_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/rendering.dart';
+import 'package:provider/provider.dart';
 
 class RecommendPage extends StatefulWidget {
   final User user;
@@ -24,23 +27,38 @@ class _RecommendPageState extends State<RecommendPage> {
   bool isChecked = false;
   String currentFridge;
   bool isLoading = true;
+  var _scrollController = ScrollController();
 
   void startTimer() {
     Timer.periodic(const Duration(seconds: 3), (t) {
       t.cancel(); //stops the timer
-      if(mounted)
-      setState(() {
-        isLoading = false; //set loading to false
-      });
+      if (mounted)
+        setState(() {
+          isLoading = false; //set loading to false
+        });
     });
   }
-
 
   @override
   void initState() {
     super.initState();
     getfridge();
     startTimer();
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+        Provider.of<ScrollDetector>(context, listen: false).visible(false);
+      } else if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.forward) {
+        Provider.of<ScrollDetector>(context, listen: false).visible(true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.removeListener(() {});
   }
 
   @override
@@ -48,7 +66,7 @@ class _RecommendPageState extends State<RecommendPage> {
     size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.orangeAccent,
+        // backgroundColor: Colors.orangeAccent,
         title: Text(
           "추천 레시피",
         ),
@@ -128,7 +146,12 @@ class _RecommendPageState extends State<RecommendPage> {
           .snapshots(),
       builder: (context, snapshot) {
         if ((snapshot.data == null) || (snapshot.data.docs.isEmpty ?? true)) {
-          return isLoading ? Center(child: CircularProgressIndicator()) : Image(image: AssetImage('images/img_empty3.png'),fit: BoxFit.cover,);
+          return isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Image(
+                  image: AssetImage('images/img_empty3.png'),
+                  fit: BoxFit.cover,
+                );
         } else {
           return _buildList(context, snapshot.data.docs);
         }
@@ -145,15 +168,17 @@ class _RecommendPageState extends State<RecommendPage> {
           : dbHelper.getRecommendList1(ingList, isChecked),
       builder: (BuildContext context, AsyncSnapshot<List<Recommend>> snapshot) {
         return AnimatedSwitcher(
-          child: snapshot.hasData ? Padding(
-        padding: const EdgeInsets.only(left: 8, right: 8),
-        child: ListView.builder(
-        scrollDirection: Axis.vertical,
-        itemCount: snapshot.data.length,
-        itemBuilder: (context, index) =>
-        _buildTile(snapshot.data[index])),
-        ) : CircularProgressIndicator()
-              ,
+          child: snapshot.hasData
+              ? Padding(
+                  padding: const EdgeInsets.only(left: 8, right: 8),
+                  child: ListView.builder(
+                      controller: _scrollController,
+                      scrollDirection: Axis.vertical,
+                      itemCount: snapshot.data.length,
+                      itemBuilder: (context, index) =>
+                          _buildTile(snapshot.data[index])),
+                )
+              : CircularProgressIndicator(),
           duration: Duration(milliseconds: 300),
         );
       },
@@ -189,8 +214,10 @@ class _RecommendPageState extends State<RecommendPage> {
                   child: Center(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child:
-                          Text('재료 : ${recommend.ready} / ${recommend.need}'),
+                      child: Text(
+                        '재료 : ${recommend.ready} / ${recommend.need}',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                 ),
@@ -326,10 +353,14 @@ class _RecommendPageState extends State<RecommendPage> {
     );
   }
 
-  void getfridge() async{
-    String temp = await FirebaseFirestore.instance.collection('user').doc(widget.user.uid).get().then((value) => value.data()['current_fridge'].toString());
+  void getfridge() async {
+    String temp = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(widget.user.uid)
+        .get()
+        .then((value) => value.data()['current_fridge'].toString());
     setState(() {
       currentFridge = temp;
     });
-}
+  }
 }

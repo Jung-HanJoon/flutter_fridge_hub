@@ -7,12 +7,15 @@ import 'package:f_fridgehub/model/recipe.dart';
 import 'package:f_fridgehub/model/recommend.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:provider/provider.dart';
+import 'package:f_fridgehub/state/scrolldetector.dart';
 
 class RecipePage extends StatefulWidget {
   final User user;
@@ -53,13 +56,30 @@ class _RecipePageState extends State<RecipePage> {
     });
   }
 
+  var _scrollController = ScrollController();
+
   @override
   void initState() {
+    super.initState();
     _loadData();
     getFridge();
-    super.initState();
     search = widget.search;
     getFavor();
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+        Provider.of<ScrollDetector>(context, listen: false).visible(false);
+      } else if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.forward) {
+        Provider.of<ScrollDetector>(context, listen: false).visible(true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.removeListener(() {});
   }
 
   @override
@@ -81,7 +101,7 @@ class _RecipePageState extends State<RecipePage> {
       search = null;
     }
     return Scaffold(
-        backgroundColor: Colors.grey[300],
+        // backgroundColor: Colors.grey[300],
         resizeToAvoidBottomPadding: false,
         // appBar: AppBar(title: Text('레시피'),),
         body: base == null
@@ -149,6 +169,7 @@ class _RecipePageState extends State<RecipePage> {
                 _buildFavor(),
               ])
             : SingleChildScrollView(
+                controller: _scrollController,
                 child: Column(children: <Widget>[
                   SizedBox(
                     height: 25,
@@ -375,21 +396,21 @@ class _RecipePageState extends State<RecipePage> {
             Container(
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey[500],
-                      offset: Offset(4.0, 4.0),
-                      blurRadius: 15.0,
-                      spreadRadius: 1.0,
-                    ),
-                    BoxShadow(
-                      color: Colors.white,
-                      offset: Offset(-4.0, -4.0),
-                      blurRadius: 15.0,
-                      spreadRadius: 1.0,
-                    )
-                  ],
-                  color: Colors.grey[300]),
+                  // boxShadow: [
+                  //   BoxShadow(
+                  //     color: Colors.grey[500],
+                  //     offset: Offset(4.0, 4.0),
+                  //     blurRadius: 15.0,
+                  //     spreadRadius: 1.0,
+                  //   ),
+                  //   BoxShadow(
+                  //     color: Colors.white,
+                  //     offset: Offset(-4.0, -4.0),
+                  //     blurRadius: 15.0,
+                  //     spreadRadius: 1.0,
+                  //   )
+                  // ],
+                  color: Colors.grey.withOpacity(0.5)),
               child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ExpansionTile(
@@ -559,21 +580,21 @@ class _RecipePageState extends State<RecipePage> {
             ),
             title: Container(
               decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey[500],
-                      offset: Offset(4.0, 4.0),
-                      blurRadius: 15.0,
-                      spreadRadius: 1.0,
-                    ),
-                    BoxShadow(
-                      color: Colors.white,
-                      offset: Offset(-4.0, -4.0),
-                      blurRadius: 15.0,
-                      spreadRadius: 1.0,
-                    )
-                  ],
-                  color: Colors.grey[300],
+                  // boxShadow: [
+                  //   BoxShadow(
+                  //     color: Colors.grey[500],
+                  //     offset: Offset(4.0, 4.0),
+                  //     blurRadius: 15.0,
+                  //     spreadRadius: 1.0,
+                  //   ),
+                  //   BoxShadow(
+                  //     color: Colors.white,
+                  //     offset: Offset(-4.0, -4.0),
+                  //     blurRadius: 15.0,
+                  //     spreadRadius: 1.0,
+                  //   )
+                  // ],
+                  color: Colors.grey.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20)),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
@@ -923,7 +944,7 @@ class CommentAddWidget extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(25),
-                        color: Colors.white),
+                        color: Colors.grey.withOpacity(0.5)),
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: Column(
@@ -1072,7 +1093,7 @@ class CommentWidget extends StatelessWidget {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Colors.grey.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(20)),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -1147,11 +1168,10 @@ class CommentWidget extends StatelessWidget {
                         ],
                       ),
                       SizedBox(
-                        height: 3,
+                        height: 12,
                       ),
                       Text(
                         _comment.content,
-                        style: TextStyle(color: Colors.grey[800]),
                       ),
                     ],
                   ),

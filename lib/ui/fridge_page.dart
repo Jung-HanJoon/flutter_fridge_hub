@@ -1,11 +1,14 @@
 import 'package:f_fridgehub/functions/db_helper.dart';
 import 'package:f_fridgehub/model/fridge.dart';
+import 'package:f_fridgehub/state/scrolldetector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:provider/provider.dart';
 
 class FridgePage extends StatefulWidget {
   final User user;
@@ -61,11 +64,28 @@ class _FridgePageState extends State<FridgePage> {
     }).whenComplete(() => print('insert success'));
   }
 
+  var _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     _loadData();
     getFridge();
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+        Provider.of<ScrollDetector>(context, listen: false).visible(false);
+      } else if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.forward) {
+        Provider.of<ScrollDetector>(context, listen: false).visible(true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.removeListener(() {});
   }
 
   @override
@@ -73,7 +93,7 @@ class _FridgePageState extends State<FridgePage> {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.orangeAccent,
+        // backgroundColor: Colors.orangeAccent,
         title: Row(
           children: [
             Text("냉장고 관리"),
@@ -131,68 +151,85 @@ class _FridgePageState extends State<FridgePage> {
           image: DecorationImage(
               image: AssetImage('images/fridgeback.png'), fit: BoxFit.cover),
         ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              children: [
-                SizedBox(height: 10),
-                Row(
-                  children: [
-                    Image(
-                      image: AssetImage('images/ic_fr.png'),
-                      height: 50,
-                      width: 50,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      '냉장고 관리',
-                      style: TextStyle(color: Colors.white, fontSize: 30),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Container(
-                    clipBehavior: Clip.antiAlias,
-                    height: size.height * 0.3,
-                    decoration: BoxDecoration(
-                      color: Colors.brown.withOpacity(0.4),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: _buildIngGrid('ing_list')),
-                SizedBox(
-                  height: 10,
-                ),
-                Row(
-                  children: [
-                    Image(
-                      image: AssetImage('images/ic_bc.png'),
-                      height: 50,
-                      width: 50,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      '장바구니 관리',
-                      style: TextStyle(color: Colors.white, fontSize: 30),
-                    )
-                  ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Container(
-                    clipBehavior: Clip.antiAlias,
-                    height: size.height * 0.3,
-                    decoration: BoxDecoration(
-                      color: Colors.brown.withOpacity(0.4),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: _buildIngGrid('cart_list')),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: OrientationBuilder(builder: (context, orientation) {
+            return StaggeredGridView.count(
+              controller: _scrollController,
+              crossAxisCount: orientation == Orientation.portrait ? 1 : 2,
+              staggeredTiles: [
+                StaggeredTile.count(1, 1),
+                StaggeredTile.count(1, 1)
               ],
-            ),
-          ),
+              mainAxisSpacing: 0,
+              children: [
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Image(
+                          image: AssetImage('images/ic_fr.png'),
+                          height: 50,
+                          width: 50,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          '냉장고 관리',
+                          style: TextStyle(color: Colors.white, fontSize: 30),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                        constraints: BoxConstraints(
+                            minHeight: orientation == Orientation.portrait
+                                ? size.height * 0.3
+                                : size.height - 200),
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          color: Colors.brown.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: _buildIngGrid('ing_list')),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Image(
+                          image: AssetImage('images/ic_bc.png'),
+                          height: 50,
+                          width: 50,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          '장바구니 관리',
+                          style: TextStyle(color: Colors.white, fontSize: 30),
+                        )
+                      ],
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                        clipBehavior: Clip.antiAlias,
+                        constraints: BoxConstraints(
+                            minHeight: orientation == Orientation.portrait
+                                ? size.height * 0.3
+                                : size.height - 200),
+                        decoration: BoxDecoration(
+                          color: Colors.brown.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: _buildIngGrid('cart_list')),
+                  ],
+                )
+              ],
+            );
+          }),
         ),
       ),
     );
@@ -209,146 +246,83 @@ class _FridgePageState extends State<FridgePage> {
             .snapshots(),
         builder: (context, snapshot) {
           return AnimatedSwitcher(
-            child: snapshot.hasData ? StaggeredGridView.countBuilder(
-              shrinkWrap: true,
-              crossAxisCount: 5,
-              itemCount: snapshot.data?.docs?.length ?? 0,
-              itemBuilder: (BuildContext context, int index) {
-                final fridge = Fridge.fromSnapshot(snapshot.data?.docs[index]);
-                return InkWell(
-                  onTap: () {
-                    var dialtec = TextEditingController();
-                    dialtec.text = fridge.quantity;
-                    showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: Text("개수 수정"),
-                            content: TextField(
-                              controller: dialtec,
-                            ),
-                            actions: [
-                              MaterialButton(
-                                  child: Text("수정"),
-                                  onPressed: () {
-                                    fridge.reference.update({
-                                      'quantity': dialtec.text,
-                                    });
-                                    Navigator.pop(context);
-                                  }),
-                            ],
-                          );
-                        });
-                  },
-                  onLongPress: () {
-                    final snackBar = SnackBar(
-                      content: Text('이 재료를 삭제하시겠습니까?'),
-                      action: SnackBarAction(
-                        label: '삭제',
-                        onPressed: () {
-                          fridge.reference.delete();
+            child: snapshot.hasData
+                ? StaggeredGridView.countBuilder(
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    crossAxisCount: 5,
+                    itemCount: snapshot.data?.docs?.length ?? 0,
+                    itemBuilder: (BuildContext context, int index) {
+                      final fridge =
+                          Fridge.fromSnapshot(snapshot.data?.docs[index]);
+                      return InkWell(
+                        onTap: () {
+                          var dialtec = TextEditingController();
+                          dialtec.text = fridge.quantity;
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: Text("개수 수정"),
+                                  content: TextField(
+                                    controller: dialtec,
+                                  ),
+                                  actions: [
+                                    MaterialButton(
+                                        child: Text("수정"),
+                                        onPressed: () {
+                                          fridge.reference.update({
+                                            'quantity': dialtec.text,
+                                          });
+                                          Navigator.pop(context);
+                                        }),
+                                  ],
+                                );
+                              });
                         },
-                      ),
-                    );
-                    Scaffold.of(context).showSnackBar(snackBar);
-                  },
-                  child: CircleAvatar(
-                    backgroundImage: AssetImage('images/dish.png'),
-                    backgroundColor: Colors.white,
-                    child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            AutoSizeText(
-                              fridge.iName,
-                              style: TextStyle(color: Colors.black),
-                              maxLines: 1,
+                        onLongPress: () {
+                          final snackBar = SnackBar(
+                            content: Text('이 재료를 삭제하시겠습니까?'),
+                            action: SnackBarAction(
+                              label: '삭제',
+                              onPressed: () {
+                                fridge.reference.delete();
+                              },
                             ),
-                            AutoSizeText(fridge.quantity,maxLines: 1,
-                            ),
-                          ],
-                        )),
+                          );
+                          Scaffold.of(context).showSnackBar(snackBar);
+                        },
+                        child: CircleAvatar(
+                          backgroundImage: AssetImage('images/dish.png'),
+                          backgroundColor: Colors.white,
+                          child: Center(
+                              child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AutoSizeText(
+                                fridge.iName,
+                                style: TextStyle(color: Colors.black),
+                                maxLines: 1,
+                              ),
+                              AutoSizeText(
+                                fridge.quantity,
+                                maxLines: 1,
+                              ),
+                            ],
+                          )),
+                        ),
+                      );
+                    },
+                    staggeredTileBuilder: (int index) =>
+                        StaggeredTile.count(1, 1),
+                    mainAxisSpacing: 4.0,
+                    crossAxisSpacing: 4.0,
+                  )
+                : Center(
+                    child: CircularProgressIndicator(),
                   ),
-                );
-              },
-              staggeredTileBuilder: (int index) => StaggeredTile.count(1, 1),
-              mainAxisSpacing: 4.0,
-              crossAxisSpacing: 4.0,
-            ) : Center(
-              child: CircularProgressIndicator(),
-            ),
             duration: Duration(milliseconds: 500),
           );
-          // if (!snapshot.hasData) {
-          //   return Center(
-          //     child: CircularProgressIndicator(),
-          //   );
-          // } else {
-          //   return StaggeredGridView.countBuilder(
-          //     shrinkWrap: true,
-          //     crossAxisCount: 5,
-          //     itemCount: snapshot.data?.docs?.length ?? 0,
-          //     itemBuilder: (BuildContext context, int index) {
-          //       final fridge = Fridge.fromSnapshot(snapshot.data?.docs[index]);
-          //       return InkWell(
-          //         onTap: () {
-          //           var dialtec = TextEditingController();
-          //           dialtec.text = fridge.quantity;
-          //           showDialog(
-          //               context: context,
-          //               builder: (context) {
-          //                 return AlertDialog(
-          //                   title: Text("개수 수정"),
-          //                   content: TextField(
-          //                     controller: dialtec,
-          //                   ),
-          //                   actions: [
-          //                     MaterialButton(
-          //                         child: Text("수정"),
-          //                         onPressed: () {
-          //                           fridge.reference.update({
-          //                             'quantity': dialtec.text,
-          //                           });
-          //                           Navigator.pop(context);
-          //                         }),
-          //                   ],
-          //                 );
-          //               });
-          //         },
-          //         onLongPress: () {
-          //           final snackBar = SnackBar(
-          //             content: Text('이 재료를 삭제하시겠습니까?'),
-          //             action: SnackBarAction(
-          //               label: '삭제',
-          //               onPressed: () {
-          //                 fridge.reference.delete();
-          //               },
-          //             ),
-          //           );
-          //           Scaffold.of(context).showSnackBar(snackBar);
-          //         },
-          //         child: CircleAvatar(
-          //           backgroundImage: AssetImage('images/dish.png'),
-          //           backgroundColor: Colors.white,
-          //           child: Center(
-          //               child: Column(
-          //             mainAxisAlignment: MainAxisAlignment.center,
-          //             children: [
-          //               Text(
-          //                 fridge.iName,
-          //                 style: TextStyle(color: Colors.black),
-          //               ),
-          //               Text(fridge.quantity),
-          //             ],
-          //           )),
-          //         ),
-          //       );
-          //     },
-          //     staggeredTileBuilder: (int index) => StaggeredTile.count(1, 1),
-          //     mainAxisSpacing: 4.0,
-          //     crossAxisSpacing: 4.0,
-          //   );
-          // }
         },
       ),
     );

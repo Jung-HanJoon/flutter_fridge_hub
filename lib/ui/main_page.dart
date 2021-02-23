@@ -1,3 +1,5 @@
+import 'package:f_fridgehub/costum_widget/bottom_navigationbar.dart';
+import 'package:f_fridgehub/state/scrolldetector.dart';
 import 'package:f_fridgehub/ui/fridge_page.dart';
 import 'package:f_fridgehub/ui/recipe_page.dart';
 import 'package:f_fridgehub/ui/recommend_page.dart';
@@ -5,6 +7,8 @@ import 'package:f_fridgehub/ui/setting_page.dart';
 import 'package:f_fridgehub/ui/share_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainPage extends StatefulWidget {
   final User user;
@@ -16,73 +20,47 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
-  int index = 0;
   List<Widget> _pages;
+  bool darkModeSwitch = false;
 
   @override
   void initState() {
     super.initState();
+    getOptionalFlag();
     _pages = [
       RecommendPage(widget.user),
       FridgePage(widget.user),
       RecipePage(widget.user),
-      SharePage(widget.user),
+      // SharePage(widget.user),
       SettingPage(widget.user)
     ];
+  }
+
+  void getOptionalFlag() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      darkModeSwitch = preferences.getBool('darkMode') ?? false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
         child: GestureDetector(
-        onTap: () {
-      FocusScopeNode currentFocus = FocusScope.of(context);
+          onTap: () {
+            FocusScopeNode currentFocus = FocusScope.of(context);
 
-      if (!currentFocus.hasPrimaryFocus) {
-        currentFocus.unfocus();
-      }
-    },
-    child: Scaffold(
-          body: AnimatedSwitcher(
-            child: _pages[index],
-            duration: Duration(milliseconds: 200),
-          ),
-          bottomNavigationBar: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            currentIndex: index,
-            backgroundColor: Colors.white,
-            fixedColor: Colors.blue,
-            unselectedItemColor: Colors.grey,
-            items: [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: '홈',
+            if (!currentFocus.hasPrimaryFocus) {
+              currentFocus.unfocus();
+            }
+          },
+          child: Scaffold(
+              body: AnimatedSwitcher(
+                child: _pages[Provider.of<ScrollDetector>(context).index],
+                duration: Duration(milliseconds: 200),
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.ac_unit),
-                label: '냉장고',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.local_fire_department),
-                label: '레시피',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.share),
-                label: '공유',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.settings),
-                label: '설정',
-              ),
-            ],
-            onTap: (int value) {
-              print('tapped : $value');
-              setState(() {
-                index = value;
-              });
-            },
-          ),
-        ),),
+              bottomNavigationBar: CustomBottomNavigationBars()),
+        ),
         onWillPop: _onBackPressed);
   }
 
