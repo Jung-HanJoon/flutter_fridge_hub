@@ -53,6 +53,7 @@ Some options for recommending dishes.**
 
 **냉장고안의 재료를 관리하기 위한 기능
 Ability to manage the ingredients in the refrigerator**
+
 ![image](https://user-images.githubusercontent.com/73573249/113379169-b7fa5f00-93b3-11eb-88fb-7e73547fb4d8.png)
 
 
